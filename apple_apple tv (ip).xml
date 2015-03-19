@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Apple" model="Apple TV (ip)" alias="Apple TV (ip)" device_class="Media_server" minimum_component_engine_version="0" rpm_xml_version="2.28">
+     xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" manufacturer="Apple" model="Apple TV (ip)" alias="Apple TV (ip)" device_class="Media_server" minimum_component_engine_version="0" rpm_xml_version="2.29">
     <notes>
 
     </notes>
@@ -555,6 +555,26 @@
                 </command_interface>
             </action>
             <action name="CommandPlay">
+                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
+                        <parameter_list>
+                            <parameter isHttpBody="false" parameter_data_type="character" name="PID" state_variable="PID"/>
+                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
+                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
+                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">00000006</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">select</parameter>
+                        </parameter_list>
+                        <delay ms_delay="20"/>
+                    </command>
+                </command_interface>
+            </action>
+            <!--
+            <action name="CommandPlay">
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string type="character" http_request_type="GET">ctrl-int/1/play?session-id=</command_string>
@@ -565,6 +585,7 @@
                     </command>
                 </command_interface>
             </action>
+            -->
             <action name="CommandPause">
                 <command_interface interface="ip">
                     <command response_required="no">
