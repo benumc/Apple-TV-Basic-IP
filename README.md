@@ -4,6 +4,10 @@
 
 *** make sure you have an alternative way (ir or already paired remote app) to control the apple tv during the setup process ***
 
+Download and extract: https://github.com/benumc/Apple-TV-Basic-IP/archive/master.zip
+
+Open a terminal and run: `ruby ~/Downloads/Apple-TV-Basic-IP-master/AppleTVpairing.rb`
+
 Import AppleTV profile into config
 
 Connect A/V and Ethernet
