@@ -1,5 +1,9 @@
 # Apple-TV-Basic-IP
 
+*** pairing script should be run from a machine on the same subnet as the apple tv ***
+
+*** make sure you have an alternative way (ir or already paired remote app) to control the apple tv during the setup process ***
+
 Import AppleTV profile into config
 
 Connect A/V and Ethernet
