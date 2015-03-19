@@ -33,12 +33,13 @@ def AppleTVpair()
                             "RemV"=>"10000",
                             "DvNm"=>"Savant"
                            })
+  puts handle
   server = TCPServer.open(12003)
   sock = server.accept
   port, ip = Socket.unpack_sockaddr_in(sock.getpeername)
   data = ReadFromRemote(sock)
   AppleTVReply(sock)
-  sock.close
+  puts "Pairing Successful"
   return true
 end
 
