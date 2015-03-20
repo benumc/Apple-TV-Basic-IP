@@ -576,30 +576,6 @@
                     </command>
                 </command_interface>
             </action>
-            <!--
-            <action name="CommandPlay">
-                <command_interface interface="ip">
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="GET">ctrl-int/1/play?session-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                </command_interface>
-            </action>
-            -->
-            <action name="CommandPause">
-                <command_interface interface="ip">
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="GET">ctrl-int/1/pause?session-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                </command_interface>
-            </action>
         </resource_component_actions>
         <custom_component_actions>
             <action name="+">
@@ -611,6 +587,28 @@
             <action name="FastForward">
             </action>
             <action name="PlayPause">
+            </action>
+            <action name="Play">
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">ctrl-int/1/play?session-id=</command_string>
+                        <parameter_list>
+                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
+                        </parameter_list>
+                        <delay ms_delay="20"/>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="Pause">
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">ctrl-int/1/pause?session-id=</command_string>
+                        <parameter_list>
+                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
+                        </parameter_list>
+                        <delay ms_delay="20"/>
+                    </command>
+                </command_interface>
             </action>
             <action name="TopMenu">
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
@@ -651,6 +649,8 @@
                 </command_interface>
             </action>
             <action name="Status">
+                <!-- Status info is returning a gzip encoded string. Modifying the accept encoding header doesn't seem to help
+                Not sure how to inflate the string without running a background script -->
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string type="character" http_request_type="GET">ctrl-int/1/playstatusupdate?revision-number=1&amp;session-id=</command_string>
@@ -660,6 +660,18 @@
                     </command>
                 </command_interface>
                 <execute_on_schedule period_ms="5000"></execute_on_schedule>
+            </action>
+            <action name="Artwork">
+                <!-- Unfortunately passing this url to CurrentArtworkURL doesn't work as the Veiwer Only Client header must be set to 1
+                Executing this action will retrieve raw image data. Not sure what to do with this. -->
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">ctrl-int/1/nowplayingartwork?mw=600&amp;mh=600&amp;session-id=</command_string>
+                        <parameter_list>
+                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
+                        </parameter_list>
+                    </command>
+                </command_interface>
             </action>
         </custom_component_actions>
     </logical_component>
