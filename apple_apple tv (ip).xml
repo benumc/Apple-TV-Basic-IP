@@ -3,8 +3,10 @@
      xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" 
      manufacturer="Apple" model="Apple TV (ip)" alias="Apple TV (ip)" 
      device_class="Media_server" minimum_component_engine_version="0" 
-     rpm_xml_version="2.30">
+     rpm_xml_version="2.32">
     <notes>
+        2.32 - Added Acceleration Feature. Can be disabled by editing the profile and setting Accel default value to 0
+        2.31 - Attached TopMenu Command to Menu Hold Acction.
         2.30 - Added TopMenu to Custom Actions
     </notes>
     
@@ -46,6 +48,12 @@
         <state_variable name="PID2" state_center_binding="PID2" owning_logical_component="Media_server" state_center_type="integer">1</state_variable>
         <state_variable name="PID" state_center_binding="PID" owning_logical_component="Media_server" state_center_type="integer">6</state_variable>
         <state_variable name="SID" state_center_binding="SID" owning_logical_component="Media_server" state_center_type="integer">0</state_variable>
+        <state_variable name="HoldMenu" state_center_binding="HoldMenu" owning_logical_component="Media_server" state_center_type="integer">0</state_variable>
+        <state_variable name="HoldArrow" state_center_binding="HoldArrow" owning_logical_component="Media_server" state_center_type="integer" min_value="-200" max_value="200">0</state_variable>
+        <state_variable name="HoldPlayPause" state_center_binding="HoldPlayPause" owning_logical_component="Media_server" state_center_type="integer">0</state_variable>
+        <state_variable name="HoldSelect" state_center_binding="HoldSelect" owning_logical_component="Media_server" state_center_type="integer">0</state_variable>
+        <state_variable name="MovePoint" state_center_binding="MovePoint" owning_logical_component="Media_server" state_center_type="integer" min_value="100" max_value="300">0</state_variable>
+        <state_variable name="Accel" state_center_binding="Accel" owning_logical_component="Media_server" state_center_type="integer">5</state_variable>
     </state_variable_list>
     <logical_component logical_component_name="Media_server">
         <implementation>
@@ -68,6 +76,32 @@
                             <command_interface interface="ip">
                                 <command response_required="no">
                                     <command_string type="character" http_request_type="GET">login?pairing-guid=0x0000000000000001</command_string>
+                                </command>
+                            </command_interface>
+                        </action>
+                    </actions>
+                </run_elements>
+            </status_message>
+            <status_message name="HoldActions">
+                <constant type="character">200</constant>
+                <run_elements>
+                    <actions>
+                        <action name="TopMenu">
+                            <execute_on_state_variable_condition name="HoldMenu" test_condition="greater_than">3</execute_on_state_variable_condition>
+                            <command_interface interface="ip">
+                                <command response_required="no">
+                                    <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
+                                    <parameter_list>
+                                        <parameter isHttpBody="false" parameter_data_type="character" name="PID" state_variable="PID"/>
+                                        <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
+                                        <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
+                                        <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
+                                        <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
+                                        <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
+                                        <parameter isHttpBody="true" parameter_data_type="hex">00000007</parameter>
+                                        <parameter isHttpBody="true" parameter_data_type="character">topmenu</parameter>
+                                    </parameter_list>
+                                    <delay ms_delay="20"/>
                                 </command>
                             </command_interface>
                         </action>
@@ -123,7 +157,14 @@
             </action>
         </universal_component_actions>
         <resource_component_actions resource_type="AV_APPLEREMOTEMEDIASERVER_SOURCE">
+            <action name="RepeatStop">
+                <update_state_variable name="HoldMenu" update_type="set" update_source="constant">0</update_state_variable>
+                <update_state_variable name="HoldArrow" update_type="set" update_source="constant">0</update_state_variable>
+                <update_state_variable name="HoldPlayPause" update_type="set" update_source="constant">0</update_state_variable>
+                <update_state_variable name="HoldSelect" update_type="set" update_source="constant">0</update_state_variable>
+            </action>
             <action name="Select">
+                <update_state_variable name="HoldSelect" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
@@ -143,17 +184,14 @@
                 </command_interface>
             </action>
             <action name="OSDCursorUp">
+                <update_state_variable name="HoldArrow" update_type="decrement" update_source="state_variable">Accel</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID2" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID3" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID4" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID5" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID6" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="set" update_source="constant">290</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="increment" update_source="state_variable">HoldArrow</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
@@ -164,8 +202,8 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchDown&amp;time=0&amp;point=20,60</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001D</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchDown&amp;time=0&amp;point=20,300</parameter>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
@@ -178,50 +216,9 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=2&amp;point=20,55</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID4" state_variable="PID4"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=3&amp;point=20,50</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID5" state_variable="PID5"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=4&amp;point=20,45</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID6" state_variable="PID6"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=5&amp;point=20,40</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001D</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=1&amp;point=20,</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character" name="MovePoint" state_variable="MovePoint"/>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
@@ -234,25 +231,23 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001A</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchUp&amp;time=6&amp;point=20,40</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001B</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchUp&amp;time=2&amp;point=20,</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character" name="MovePoint" state_variable="MovePoint"/>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
                 </command_interface>
             </action>
             <action name="OSDCursorDown">
+                <update_state_variable name="HoldArrow" update_type="increment" update_source="state_variable">Accel</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID2" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID3" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID4" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID5" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID6" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="set" update_source="constant">110</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="increment" update_source="state_variable">HoldArrow</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
@@ -263,8 +258,8 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchDown&amp;time=0&amp;point=20,40</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001D</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchDown&amp;time=0&amp;point=20,100</parameter>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
@@ -277,50 +272,9 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=1&amp;point=20,45</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID4" state_variable="PID4"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=2&amp;point=20,50</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID5" state_variable="PID5"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=3&amp;point=20,55</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID6" state_variable="PID6"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=4&amp;point=20,60</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001D</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=1&amp;point=20,</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character" name="MovePoint" state_variable="MovePoint"/>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
@@ -333,25 +287,23 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001A</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchUp&amp;time=6&amp;point=20,60</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001B</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchUp&amp;time=2&amp;point=20,</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character" name="MovePoint" state_variable="MovePoint"/>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
                 </command_interface>
             </action>
             <action name="OSDCursorLeft">
+                <update_state_variable name="HoldArrow" update_type="decrement" update_source="state_variable">Accel</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID2" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID3" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID4" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID5" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID6" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="set" update_source="constant">290</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="increment" update_source="state_variable">HoldArrow</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
@@ -362,8 +314,8 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchDown&amp;time=0&amp;point=60,20</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001D</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchDown&amp;time=0&amp;point=300,20</parameter>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
@@ -376,50 +328,10 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=1&amp;point=55,20</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID4" state_variable="PID4"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=2&amp;point=50,20</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID5" state_variable="PID5"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=3&amp;point=45,20</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID6" state_variable="PID6"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=4&amp;point=40,20</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001D</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=1&amp;point=</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character" name="MovePoint" state_variable="MovePoint"/>
+                            <parameter isHttpBody="true" parameter_data_type="character">,20</parameter>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
@@ -432,25 +344,23 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001A</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchUp&amp;time=6&amp;point=40,20</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">00000001B</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchUp&amp;time=2&amp;point=</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character" name="MovePoint" state_variable="MovePoint"/>
+                            <parameter isHttpBody="true" parameter_data_type="character">,20</parameter>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
                 </command_interface>
             </action>
             <action name="OSDCursorRight">
+                <update_state_variable name="HoldArrow" update_type="increment" update_source="state_variable">Accel</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID2" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID3" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID4" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID5" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="PID6" update_type="set" update_source="state_variable">PID</update_state_variable>
-                <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="set" update_source="constant">110</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="increment" update_source="state_variable">HoldArrow</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
                         <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
@@ -461,8 +371,8 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchDown&amp;time=0&amp;point=40,100</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001D</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchDown&amp;time=0&amp;point=100,20</parameter>
                         </parameter_list>
                         <delay ms_delay="100"/>
                     </command>
@@ -475,50 +385,10 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=1&amp;point=45,100</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID4" state_variable="PID4"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=2&amp;point=50,100</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID5" state_variable="PID5"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=3&amp;point=55,100</parameter>
-                        </parameter_list>
-                        <delay ms_delay="20"/>
-                    </command>
-                    <command response_required="no">
-                        <command_string type="character" http_request_type="POST">ctrl-int/1/controlpromptentry?prompt-id=</command_string>
-                        <parameter_list>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="PID6" state_variable="PID6"/>
-                            <parameter isHttpBody="false" parameter_data_type="character">&amp;session-id=</parameter>
-                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
-                            <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001C</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=4&amp;point=60,100</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001D</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchMove&amp;time=1&amp;point=</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character" name="MovePoint" state_variable="MovePoint"/>
+                            <parameter isHttpBody="true" parameter_data_type="character">,20</parameter>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
@@ -531,14 +401,17 @@
                             <parameter isHttpBody="true" parameter_data_type="character">cmcc</parameter>
                             <parameter isHttpBody="true" parameter_data_type="hex">00000001</parameter>
                             <parameter isHttpBody="true" parameter_data_type="character">0cmbe</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="hex">0000001A</parameter>
-                            <parameter isHttpBody="true" parameter_data_type="character">touchUp&amp;time=5&amp;point=60,100</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="hex">0000001B</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character">touchUp&amp;time=2&amp;point=</parameter>
+                            <parameter isHttpBody="true" parameter_data_type="character" name="MovePoint" state_variable="MovePoint"/>
+                            <parameter isHttpBody="true" parameter_data_type="character">,20</parameter>
                         </parameter_list>
                         <delay ms_delay="20"/>
                     </command>
                 </command_interface>
             </action>
             <action name="Menu">
+                <update_state_variable name="HoldMenu" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
@@ -558,6 +431,7 @@
                 </command_interface>
             </action>
             <action name="CommandPlay">
+                <update_state_variable name="HoldPlayPause" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
