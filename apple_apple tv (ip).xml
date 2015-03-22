@@ -3,8 +3,9 @@
      xsi:noNamespaceSchemaLocation="racepoint_component_profile.xsd" 
      manufacturer="Apple" model="Apple TV (ip)" alias="Apple TV (ip)" 
      device_class="Media_server" minimum_component_engine_version="0" 
-     rpm_xml_version="2.32">
+     rpm_xml_version="2.33">
     <notes>
+        2.33 - Fix for single button press
         2.32 - Added Acceleration Feature. Can be disabled by editing the profile and setting Accel default value to 0
         2.31 - Attached TopMenu Command to Menu Hold Acction.
         2.30 - Added TopMenu to Custom Actions
@@ -190,7 +191,7 @@
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID3" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="MovePoint" update_type="set" update_source="constant">290</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="set" update_source="constant">285</update_state_variable>
                 <update_state_variable name="MovePoint" update_type="increment" update_source="state_variable">HoldArrow</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
@@ -246,7 +247,7 @@
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID3" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="MovePoint" update_type="set" update_source="constant">110</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="set" update_source="constant">115</update_state_variable>
                 <update_state_variable name="MovePoint" update_type="increment" update_source="state_variable">HoldArrow</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
@@ -302,7 +303,7 @@
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID3" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="MovePoint" update_type="set" update_source="constant">290</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="set" update_source="constant">285</update_state_variable>
                 <update_state_variable name="MovePoint" update_type="increment" update_source="state_variable">HoldArrow</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
@@ -359,7 +360,7 @@
                 <update_state_variable name="PID2" update_type="set" update_source="state_variable">PID</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
                 <update_state_variable name="PID" update_type="increment" update_source="constant">1</update_state_variable>
-                <update_state_variable name="MovePoint" update_type="set" update_source="constant">110</update_state_variable>
+                <update_state_variable name="MovePoint" update_type="set" update_source="constant">115</update_state_variable>
                 <update_state_variable name="MovePoint" update_type="increment" update_source="state_variable">HoldArrow</update_state_variable>
                 <command_interface interface="ip">
                     <command response_required="no">
