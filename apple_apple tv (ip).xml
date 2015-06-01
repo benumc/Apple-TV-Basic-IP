@@ -5,6 +5,7 @@
      device_class="Media_server" minimum_component_engine_version="0" 
      rpm_xml_version="2.33">
     <notes>
+        2.34 - Added Transport actions to custom commands section.
         2.33 - Fix for single button press
         2.32 - Added Acceleration Feature. Can be disabled by editing the profile and setting Accel default value to 0
         2.31 - Attached TopMenu Command to Menu Hold Acction.
@@ -453,6 +454,62 @@
             </action>
         </resource_component_actions>
         <custom_component_actions>
+            <action name="SkipForward">
+                <execute_on_state_variable_condition name="Playing" test_condition="equal">1</execute_on_state_variable_condition>
+                <execute_on_state_variable_condition name="HoldRight" test_condition="greater_than">5</execute_on_state_variable_condition>
+                <update_state_variable name="HoldRight" update_type="set" update_source="constant">0</update_state_variable>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">ctrl-int/1/nextitem?session-id=</command_string>
+                        <parameter_list>
+                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
+                        </parameter_list>
+                        <delay ms_delay="1000"/>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="SkipBack">
+                <execute_on_state_variable_condition name="Playing" test_condition="equal">1</execute_on_state_variable_condition>
+                <execute_on_state_variable_condition name="HoldLeft" test_condition="greater_than">5</execute_on_state_variable_condition>
+                <update_state_variable name="HoldLeft" update_type="set" update_source="constant">0</update_state_variable>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">ctrl-int/1/previtem?session-id=</command_string>
+                        <parameter_list>
+                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
+                        </parameter_list>
+                        <delay ms_delay="1000"/>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="ScanForward">
+                <execute_on_state_variable_condition name="Playing" test_condition="equal">1</execute_on_state_variable_condition>
+                <execute_on_state_variable_condition name="HoldDown" test_condition="greater_than">5</execute_on_state_variable_condition>
+                <update_state_variable name="HoldDown" update_type="set" update_source="constant">0</update_state_variable>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">ctrl-int/1/beginff?session-id=</command_string>
+                        <parameter_list>
+                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
+                        </parameter_list>
+                        <delay ms_delay="1000"/>
+                    </command>
+                </command_interface>
+            </action>
+            <action name="ScanBack">
+                <execute_on_state_variable_condition name="Playing" test_condition="equal">1</execute_on_state_variable_condition>
+                <execute_on_state_variable_condition name="HoldUp" test_condition="greater_than">5</execute_on_state_variable_condition>
+                <update_state_variable name="HoldUp" update_type="set" update_source="constant">0</update_state_variable>
+                <command_interface interface="ip">
+                    <command response_required="no">
+                        <command_string type="character" http_request_type="GET">ctrl-int/1/beginrew?session-id=</command_string>
+                        <parameter_list>
+                            <parameter isHttpBody="false" parameter_data_type="character" name="SID" state_variable="SID"/>
+                        </parameter_list>
+                        <delay ms_delay="1000"/>
+                    </command>
+                </command_interface>
+            </action>
             <action name="+">
             </action>
             <action name="-">              
